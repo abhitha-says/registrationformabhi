@@ -1,0 +1,73 @@
+# Logs
+logs/
+*.log
+
+# System
+.DS_Store
+Thumbs.db
+*.tmp
+
+# IDE
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Dependencies
+vendor/
+node_modules/
+composer.lock
+
+# Temporary files
+*.backup
+*.swp
+*.swo
+*~
+
+# OS
+*.class
+*.jar
+*.war
+
+# Database backups
+*.sql.backup
+*.sql.bak
+
+# Session files
+session/
+sessions/
+
+# Uploaded files (if added later)
+uploads/
+temp/
+tmp/
+
+# IDE specific
+.phpstorm.meta.php
+_ide_helper.php
+
+# Testing
+.phpunit.result.cache
+coverage/
+
+# Production builds (if applicable)
+dist/
+build/
+
+# Heroku
+.env.production
+
+# API Keys & Secrets (NEVER commit)
+*.key
+*.pem
+*_secret*
+
+
+
+.md 
+node_modules
