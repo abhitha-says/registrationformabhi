@@ -179,6 +179,37 @@ CREATE TABLE users (
    heroku open
    ```
 
+   ---
+
+   ### Option 3: Vercel (Recommended for static + serverless)
+
+   This project now includes a Vercel serverless API at `/api/process` (Node.js). The API performs the same validation and password hashing as the original PHP backend and logs registration entries to the ephemeral filesystem (`/tmp`) on the server. Note: Vercel's filesystem is ephemeral — logs are temporary and may be removed. For production you should connect a persistent database (MySQL, Postgres, MongoDB) or storage (S3, Airtable, Firebase).
+
+   Files added for Vercel:
+
+   - `api/process.js` - Serverless function (handles POST JSON, validation, password hashing)
+   - `package.json` - Declares `bcryptjs` dependency used by the function
+
+   Quick Vercel deploy steps:
+
+   1. Install Vercel CLI (optional) and login:
+   ```bash
+   npm i -g vercel
+   vercel login
+   ```
+   2. From your project root, deploy:
+   ```bash
+   vercel deploy --prod
+   ```
+   3. Vercel will detect the `api/` folder and deploy serverless functions automatically.
+
+   Notes & recommendations:
+
+   - Vercel serverless functions are ideal for small backends and testing. For production, configure a managed database and update the API to write to that database instead of ephemeral logs.
+   - Keep any secrets (DB credentials, API keys) in Vercel Environment Variables via the Vercel dashboard or `vercel env` commands.
+   - If you need persistent logs, consider writing registration records to an external store (database or object storage).
+
+
 ---
 
 ## 🛠️ Customization

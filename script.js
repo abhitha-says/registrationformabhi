@@ -57,42 +57,79 @@ function handleButtonClick() {
     if (!isValid) {
         return;
     }
+    // Collect form data (including passwords for server validation)
+    const payload = {
+        fullName: $('#fullName').val().trim(),
+        email: $('#email').val().trim(),
+        phone: $('#phone').val().trim(),
+        dob: $('#dob').val(),
+        password: $('#password').val(),
+        confirmPassword: $('#confirmPassword').val()
+    };
 
-    // Get form data
-    const fullName = $('#fullName').val().trim();
-    const email = $('#email').val().trim();
-    const phone = $('#phone').val().trim();
-    const dob = $('#dob').val();
+    // Disable submit button and show spinner for UX
+    const $submitBtn = $('#submitBtn');
+    const $btnText = $('#btnText');
+    const $btnSpinner = $('#btnSpinner');
+    $submitBtn.prop('disabled', true);
+    $btnText.text('Registering...');
+    $btnSpinner.show();
 
-    // Create registration details display
-    const registrationDetails = `
-        <div class="registration-details">
-            <h2>✅ Registration Successful!</h2>
-            <div class="details-content">
-                <p><strong>Full Name:</strong> ${fullName}</p>
-                <p><strong>Email:</strong> ${email}</p>
-                <p><strong>Phone Number:</strong> ${phone}</p>
-                <p><strong>Date of Birth:</strong> ${formatDate(dob)}</p>
-                <p style="margin-top: 20px; font-size: 14px; color: #666;">
-                    Registration completed successfully. Your details have been saved.
-                </p>
-            </div>
-            <button class="btn-close-details" onclick="closeRegistrationDetails()">Close</button>
-        </div>
-    `;
+    // Send JSON POST to serverless API
+    $.ajax({
+        url: '/api/process',
+        type: 'POST',
+        data: JSON.stringify(payload),
+        contentType: 'application/json; charset=utf-8',
+        dataType: 'json',
+        timeout: 10000,
+        success: function (response) {
+            if (response && response.status === 'success') {
+                // Build modal using the submitted (sanitized) payload
+                const registrationDetails = `
+                    <div class="registration-details">
+                        <h2>✅ Registration Successful!</h2>
+                        <div class="details-content">
+                            <p><strong>Full Name:</strong> ${escapeHtml(payload.fullName)}</p>
+                            <p><strong>Email:</strong> ${escapeHtml(payload.email)}</p>
+                            <p><strong>Phone Number:</strong> ${escapeHtml(payload.phone)}</p>
+                            <p><strong>Date of Birth:</strong> ${formatDate(payload.dob)}</p>
+                            <p style="margin-top: 20px; font-size: 14px; color: #666;">
+                                ${escapeHtml(response.message)}
+                            </p>
+                        </div>
+                        <button class="btn-close-details" onclick="closeRegistrationDetails()">Close</button>
+                    </div>
+                `;
 
-    // Show registration details in a modal/overlay
-    $('body').append(`
-        <div class="modal-overlay" id="detailsModal">
-            ${registrationDetails}
-        </div>
-    `);
+                // Append modal
+                $('body').append(`
+                    <div class="modal-overlay" id="detailsModal">
+                        ${registrationDetails}
+                    </div>
+                `);
 
-    // Show success message
-    showMessage('✅ Registration Successful! Your details are displayed below.', 'success');
+                // Show top message
+                showMessage(response.message || 'Registration successful', 'success');
 
-    // Reset form
-    $('#registrationForm')[0].reset();
+                // Reset form (client-side)
+                $('#registrationForm')[0].reset();
+            } else {
+                showMessage(response.message || 'An error occurred', 'error');
+            }
+        },
+        error: function (jqXHR, textStatus, errorThrown) {
+            let err = 'An error occurred. Please try again.';
+            if (jqXHR && jqXHR.responseJSON && jqXHR.responseJSON.message) err = jqXHR.responseJSON.message;
+            showMessage(err, 'error');
+            console.error('API error', textStatus, errorThrown);
+        },
+        complete: function () {
+            $submitBtn.prop('disabled', false);
+            $btnText.text('Register Now');
+            $btnSpinner.hide();
+        }
+    });
 }
 
 // ===========================================
@@ -102,6 +139,19 @@ function formatDate(dateString) {
     const options = { year: 'numeric', month: 'long', day: 'numeric' };
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', options);
+}
+
+// ===========================================
+// ESCAPE HTML (prevent XSS in modal output)
+// ===========================================
+function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
 }
 
 // ===========================================
